@@ -17,10 +17,18 @@ class Observer(object):
         self.apiHelper = allegro.ApiHelper(self.settings)
         self.auctions = {}
         self.getAuctions()
+        self.sleep_time_default = 60 * self.settings.CHECK_INTERVAL
+        self.sleep_time_short = int(60 * self.settings.CHECK_INTERVAL / 10)
+        self.sleep_time = self.sleep_time_default
 
     def getAuctions(self):
         self.old_auctions = self.auctions
-        self.auctions = self.apiHelper.getAuctions()
+        auctions = self.apiHelper.getAuctions()
+        if auctions and len(auctions):
+            self.auctions = auctions
+            return True
+        else:
+            return False
 
     def getDelta(self):
         if not self.old_auctions:
@@ -38,10 +46,12 @@ class Observer(object):
             delta = self.getDelta()
             if delta:
                 self.handleDelta(delta)
-            sleep_time = 60 * self.settings.CHECK_INTERVAL
-            logger.info("Sleep for %d" % (sleep_time, ))
-            time.sleep(sleep_time)
-            self.getAuctions()
+            logger.info("Sleep for %d" % (self.sleep_time, ))
+            time.sleep(self.sleep_time)
+            if self.getAuctions():
+                self.sleep_time = self.sleep_time_default
+            else:
+                self.sleep_time = self.sleep_time_short
 
     def handleDelta(self, delta):
         content = 'Nowe aukcje na allegro:<br><ul>'
