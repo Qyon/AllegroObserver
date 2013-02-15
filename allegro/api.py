@@ -101,9 +101,7 @@ class ApiHelper(object):
                     self.session = self.getSession()
                     logger.debug('Sleep na 10 sekund, na wszelki wypadek...')
                     time.sleep(10)
-                    self.get_auctions_retry_count += 1
-                    first = True
-                    continue
+                    return {}
                 else:
                     raise e
 
